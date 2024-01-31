@@ -1,75 +1,43 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
-  </head>
-  <body>
-    <h1>Chat App</h1>
-    <div id="login" {% if login_display %}style="display:none;"{% endif %}>
-      <form>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" value=""><br><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"><br><br>
-        <input type="submit" value="Login">
-      </form>
-    </div>
-    <div id="chat" {% if not login_display %}style="display:none;"{% endif %}>
-      <div id="messages"></div>
-      <form>
-        <input type="text" id="message" name="message">
-        <input type="submit" value="Send">
-      </form>
-    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+<body>
 
-    <script>
-      // Connect to the server using Socket.io
-      const socket = io();
+<div id="chat">
+    <div id="messages"></div>
+    <form id="messageForm">
+        <input type="text" id="messageInput" autocomplete="off">
+        <button type="submit">Send</button>
+    </form>
+</div>
 
-      // Get references to the HTML elements
-      const loginForm = document.querySelector("#login form");
-      const chatForm = document.querySelector("#chat form");
-      const messagesDiv = document.querySelector("#messages");
-      const chatDiv = document.querySelector("#chat");
-      const usernameInput = document.querySelector("#username");
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-      // Handle login form submission
-      loginForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const username = event.target.elements.username.value;
-        const password = event.target.elements.password.value;
-        socket.emit("login", { username, password });
-      });
+        socket.on('message', function (msg) {
+            var messagesDiv = document.getElementById('messages');
+            var messageDiv = document.createElement('div');
+            messageDiv.textContent = msg;
+            messagesDiv.appendChild(messageDiv);
+        });
 
-      // Handle successful login
-      socket.on("loginSuccess", () => {
-        console.log("Login successful");
-        loginForm.style.display = "none";
-        chatDiv.style.display = "block";
-      });
+        var messageForm = document.getElementById('messageForm');
+        var messageInput = document.getElementById('messageInput');
 
-      // Handle failed login
-      socket.on("loginError", (errorMessage) => {
-        console.log("Login failed: " + errorMessage);
-        alert("Login failed: " + errorMessage);
-      });
+        messageForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var message = messageInput.value;
+            socket.emit('message', message);
+            messageInput.value = '';
+        });
+    });
+</script>
 
-      // Handle chat form submission
-      chatForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const message = event.target.elements.message.value;
-        socket.emit("sendMessage", message);
-        event.target.elements.message.value = "";
-      });
-
-      // Handle received message
-      socket.on("message", (data) => {
-        const { username, text } = data;
-        const messageDiv = document.createElement("div");
-        messageDiv.textContent = username + ": " + text;
-        messagesDiv.appendChild(messageDiv);
-      });
-    </script>
-  </body>
+</body>
 </html>
