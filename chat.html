@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+<body>
+    <h2>Welcome, Guest!</h2>
+    <div>
+        <h3>Chat Room</h3>
+        <ul>
+            {% for message in messages %}
+                <li>{{ message['username'] }}: {{ message['message'] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <form action="/send" method="post">
+        <label for="message">Message:</label>
+        <input type="text" id="message" name="message" required>
+        <br>
+        <input type="submit" value="Send">
+    </form>
+</body>
+</html>
