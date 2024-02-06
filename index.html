@@ -3,52 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    <title>Simple Chat</title>
 </head>
 <body>
-
-<div id="chat">
-    <div id="messages"></div>
-    <form id="messageForm">
-        <label for="user">Username:</label>
-        <input type="text" id="userInput" autocomplete="off" required>
-        <label for="message">Message:</label>
-        <input type="text" id="messageInput" autocomplete="off" required>
-        <button type="submit">Send</button>
+    <h2>Chat Room</h2>
+    <div id="chat-box">
+        <ul id="message-list">
+            {% for message in messages %}
+                <li><strong>{{ message['username'] }}:</strong> {{ message['message'] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <form id="message-form">
+        <label for="username">Your Name:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="message">Type your message:</label>
+        <input type="text" id="message" name="message" required>
+        <button type="button" onclick="sendMessage()">Send</button>
     </form>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var messagesDiv = document.getElementById('messages');
-        var messageForm = document.getElementById('messageForm');
-        var userInput = document.getElementById('userInput');
-        var messageInput = document.getElementById('messageInput');
+    <script>
+        function sendMessage() {
+            var username = document.getElementById('username').value;
+            var message = document.getElementById('message').value;
 
-        messageForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            var user = userInput.value;
-            var message = messageInput.value;
-
-            fetch('/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    'user': user,
-                    'message': message,
-                }),
-            }).then(response => response.json()).then(data => {
-                var messageDiv = document.createElement('div');
-                messageDiv.textContent = data.user + ': ' + data.message;
-                messagesDiv.appendChild(messageDiv);
-            });
-
-            messageInput.value = '';
-        });
-    });
-</script>
-
+            if (username && message) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/send', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        var messageList = document.getElementById('message-list');
+                        var listItem = document.createElement('li');
+                        listItem.innerHTML = '<strong>' + response.username + ':</strong> ' + response.message;
+                        messageList.appendChild(listItem);
+                        document.getElementById('message').value = '';
+                    }
+                };
+                xhr.send('username=' + encodeURIComponent(username) + '&message=' + encodeURIComponent(message));
+            }
+        }
+    </script>
 </body>
 </html>
